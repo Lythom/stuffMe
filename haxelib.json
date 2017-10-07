@@ -1,0 +1,11 @@
+{
+  "name": "stuffMe",
+  "url" : "https://github.com/Lythom/stuffMe",
+  "license": "MIT",
+  "tags": ["game"],
+  "description": "Declare attributes, items and bonus. Let StuffMe will do the math.",
+  "version": "0.0.1",
+  "releasenote": "",
+  "contributors": ["Lythom"],
+  "dependencies": {}
+}

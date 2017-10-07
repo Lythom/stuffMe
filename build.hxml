@@ -1,0 +1,17 @@
+-cp src
+
+lythom.stuffme.StuffMe
+lythom.stuffme.AttributeSet
+
+--each
+
+# JS library
+-js bin/stuffme.js
+
+# .net dll
+--next
+-D dll
+-D no-root
+--no-inline
+-D csharp-compiler=C:\Program Files\Unity 2017.3.0b3\Editor\Data\Mono\bin\gmcs
+-cs bin/stuffme

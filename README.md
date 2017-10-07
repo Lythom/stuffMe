@@ -1,3 +1,3 @@
 # stuffMe
 
-Declare attributes, items and bonus, and StuffMe will do the math.
+Declare attributes, items and bonus.Let StuffMe do the math.
