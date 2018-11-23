@@ -5,7 +5,8 @@
   "tags": ["game"],
   "description": "Declare attributes, items and bonus. Let StuffMe will do the math.",
   "version": "0.0.1",
-  "releasenote": "",
+  "releasenote": "Initial release",
   "contributors": ["Lythom"],
+  "classPath": "src/",
   "dependencies": {}
 }

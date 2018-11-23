@@ -1,4 +1,5 @@
 -cp src
+-dce full
 
 lythom.stuffme.StuffMe
 lythom.stuffme.AttributeSet
@@ -13,5 +14,5 @@ lythom.stuffme.AttributeSet
 -D dll
 -D no-root
 --no-inline
--D csharp-compiler=C:\Program Files\Unity 2017.3.0b3\Editor\Data\Mono\bin\gmcs
+-D csharp-compiler=C:\Program Files\Unity\Hub\Editor\2018.1.9f2\Editor\Data\Mono\bin\gmcs
 -cs bin/stuffme

@@ -1,0 +1,17 @@
+{
+    "indentation": {
+        "character": "    "
+    },
+    "wrapping": {
+        "anonType": {
+            "defaultWrap": "noWrap"
+        },
+        "functionSignature": {
+            "defaultWrap": "keep"
+        },
+        "callParameter": {
+            "defaultWrap": "keep"
+        }
+    }
+    
+}

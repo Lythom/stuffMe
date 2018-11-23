@@ -1,0 +1,6 @@
+-cp src
+-cp tests
+-lib buddy
+-x RunTests
+#-hl RunTests.hl
+#-main RunTests
