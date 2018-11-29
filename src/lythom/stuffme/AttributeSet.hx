@@ -1,108 +1,77 @@
 package lythom.stuffme;
 
 import haxe.ds.StringMap;
+import lythom.stuffme.BonusDetail;
+import lythom.stuffme.ItemDetail;
+
+using lythom.stuffme.StuffMe;
+using Lambda;
 
 @:keep
 class AttributeSet {
-    private var values:StringMap<Float> = new StringMap<Float>();
-    private var bonusValues:BonusValues = new BonusValues();
+    private var values:AttributeValues = new AttributeValues();
 
-    public var equipedItems:Array<Item> = new Array<Item>();
-
-    public function new(?values:StringMap<Float>, ?equipedItems:Array<Item>) {
-        this.values = (values != null) ? values : new StringMap<Float>();
-        this.equipedItems = (equipedItems != null) ? equipedItems : new Array<Item>();
+    public function new(?values:AttributeValues) {
+        this.values = (values != null) ? values : new AttributeValues();
     }
 
-    public function update():AttributeSet {
-        if (this.equipedItems.length == 0) {
-            return attributes;
+    public function with(items:Array<Item>):Array<ItemDetail> {
+        if (items.length == 0) {
+            return [];
         }
-        this.calculateItemTreeBonusValues(this.equipedItems);
-        this.calculateAttributes();
+        return this.getItemsDetails(this.values, items);
     }
 
-    public function calculateItemTreeBonusValues(subitems:Array<Item>):BonusValues {
-        // calculate the bonus this items would grant on this attributeSet
-        this.calculateItemsBonusValues();
-        var bonusesValue:AttributeSet = getTotalBonusesValue(calculatedItems);
-        // the subItems applies on the combinedBonusesValue of the item. Now that each item is calculated, subItems can be calculated as well.
-
-        for (item in equipedItems) {
-            bonusesValue.calculateItemTreeBonusValues();
+    public function calculateAttributeValues(itemDetails:Array<ItemDetail>):AttributeValues {
+        var thisBonusValues = itemDetails.flatMap(d -> d.bonusDetailList.map(b -> b.value)).mergeAll();
+        var childItemDetail = itemDetails.flatMap(d -> d.items);
+        if (childItemDetail.length == 0) {
+            return thisBonusValues.merge(this.values);
         }
-        var calculatedItemsAndSubItems = calculatedItems.map(item => Object.assign({}, item, {
-                equipedItems: calculateBonusValues(bonusesValue, item.equipedItems, rootItems)
-            }));
+        return thisBonusValues.merge(calculateAttributeValues(childItemDetail)).merge(this.values);
     }
 
-    public function calculateItemsBonusValues():BonusValues {
-        var allBonuses = [
-            for (item in equipedItems)
-                for (bonus in item.bonuses)
-                    bonus];
-        var priorities = [for (bonus in allBonuses) bonus.priority];
-        var distinctPriorities = [];
-        for (p in priorities) {
-            if (distinctPriorities.indexOf(p) == -1)
-                distinctPriorities.push(p);
+    /**
+     * Calculate the bonus items would grant on this baseValues.
+     * @param baseValues
+     * @param items
+     * @return Array<ItemDetail>
+     */
+    public function getItemsDetails(baseValues:AttributeValues, items:Array<Item>):Array<ItemDetail> {
+        var cumulatedBonusDetails:Array<BonusDetail> = [];
+        var itemsDetails:Array<ItemDetail> = [];
+
+        // For each item, calculate the BonusDetail by priority
+        for (priority in items.getPrioritiesSorted()) {
+            // take into account bonus calculated from previous priorities
+            var cumulatedValue = cumulatedBonusDetails.map(b -> b.value).mergeAll().merge(baseValues);
+            // calculate for each item the list of BonusDetail of current priority from AttributeSet data and cumulatedBonusValues
+            var itemsBonusDetailsOfPriority:Array<BonusDetail> = items.flatMap(item -> item.getItemBonuses(cumulatedValue, priority));
+
+            // apply on current attributes the cumulated bonus value in order to include them in next bonuses calculations
+            cumulatedBonusDetails = cumulatedBonusDetails.concat(itemsBonusDetailsOfPriority);
         }
-        distinctPriorities.sort((priority1, priority2) -> priority1 - priority2);
 
-		for (priority in distinctPriorities) {
-			// apply on current attributes the cumulated bonus value in order to include them in next bonuses calculations
-			this.updateBonusValues();
-			for (item in this.equipedItems) {
-				// for each item, calculate the bonus granted cumulated by priority
-				item.updateItemBonuses(this, priority);
-			}
- 			// // apply on attributes the cumulated bonus value in order to calculate next bonuses
-            // var cumulatedBonusesValue = getTotalBonusesValue(cumulatedItems)
-            // var cumulatedAttr = applyBonusValue(attributes, cumulatedBonusesValue)
-
-            // // for each item, calculate the bonus granted cumulated by priority
-            // var itemsWithCumulatedBonus = cumulatedItems.map(item => {
-            //     return calculateItemBonuses(item, cumulatedAttr, priority, rootItems)
-            // })
-
-		}
-		 return itemsWithCalculatedBonusValues
-    }
-
-	function getTotalBonusesValue(items:Array<Item>) {
-		for (item in items) {
-			for (bonus in item.bonuses) {
-				this.bonusValues.set(bonus.)
-			}
-		}
-		// return applyBonusesValue({}, [].concat(...items.map(item => item.bonusList.map(b => b.calculatedValue))))
-	}
-
-	static function applyBonusesValue(attributes:AttributeSet, BonusValues:BonusValues) {
-		if (BonusValues == null) return;
-
-		for(key => value in BonusValues) {
-			attributes.bonusValues.set(key, attributes.bonusValues.get(key) + value);
-		}
-		return attributes;
-	}
-
-    public function calculateAttributes(BonusValues:BonusValues):AttributeSet {}
-
-    public function equip(item:Item) {
-        this.equipedItems.push(item);
-    }
-
-    public function unequip(item:Item):Bool {
-        return this.equipedItems.remove(item);
+        // Now that each item bonus value is calculated, subItems, that are based on the item granted bonus, can be calculated as well.
+        for (item in items) {
+            var itemBonusDetailList = cumulatedBonusDetails.filter(b -> b.item == item);
+            var itemAttributeValues = itemBonusDetailList.map(b -> b.value).mergeAll();
+            itemsDetails.push({
+                item: item,
+                items: item.getItemsDetails(itemAttributeValues, item.equipedItems),
+                bonusDetailList: itemBonusDetailList
+            });
+        }
+        return itemsDetails;
     }
 
     public function copy():AttributeSet {
-        return new AttributeSet(values.copy(), equipedItems.copy());
+        return new AttributeSet(values.copy());
     }
 
-    public function set(key:String, value:Float):Void {
+    public function set(key:String, value:Float):AttributeSet {
         values.set(key, value);
+        return this;
     }
 
     public function get(key:String):Float {

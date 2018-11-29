@@ -3,6 +3,11 @@ package lythom.stuffme;
 import haxe.ds.StringMap;
 
 /**
+ * Calculate an AttributeValues (bonus granted) from base attributeValues (The entity reference stats with)
+ */
+typedef Formula = AttributeValues->AttributeValues;
+
+/**
  * A Bonus can calculate a bonus values to one or several attributes based on a reference AttributeSet.
  * A Bonus is usually held by an Item.
  * The reference AttributeSet is provided as argument to the formula, it will correspond to the Item parent AttributeSet.
@@ -10,7 +15,11 @@ import haxe.ds.StringMap;
 @:keep
 class Bonus {
     public var id:String;
-    public var formula:AttributeSet->BonusValues;
+
+    /**
+     * Calculate an AttributeValues (bonus granted) from base attributeValues (The entity reference stats with)
+     */
+    public var formula:Formula;
     public var priority:Priority;
 
     /**
@@ -19,7 +28,7 @@ class Bonus {
      * @param formula 	Returns a collection of attribute->value where value is the additional bonus granted to the attribute
      * @param priority 	Normal (0) priority are applied first, After(1) and Finally(2) priorities will include calculated bonuses from previous priorities in their own calculation.
      */
-    public function new(id:String, formula:AttributeSet->BonusValues, priority:Priority = Priority.Normal) {
+    public function new(id:String, formula:Formula, priority:Priority = Priority.Normal) {
         this.id = id;
         this.formula = formula;
         this.priority = priority;

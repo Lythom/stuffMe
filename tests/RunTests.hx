@@ -36,29 +36,31 @@ class RunTests extends buddy.SingleSuite {
                 baseAttributes.set(DAMAGE, 10);
             });
 
-            itShould("return initial AttributeSet if no items are specified", Sync(() -> {
-                StuffMe.resolve(baseAttributes, []).should.be(baseAttributes);
+            itShould("return empty array in to Items are specified", Sync(() -> {
+                var calculatedDetails = baseAttributes.with([]);
+                calculatedDetails.length.should.be(0);
+            }));
+
+            itShould("return initial AttributeSet if no bonusDetails are calculated", Sync(() -> {
+                var calculatedAttributes = baseAttributes.calculateAttributeValues(baseAttributes.with([]));
+                calculatedAttributes.get(DAMAGE).should.be(baseAttributes.get(DAMAGE));
+                calculatedAttributes.get(RANGE).should.be(baseAttributes.get(RANGE));
             }));
 
             itShould("return a new AttributeSet with calculated attributes, when at least on item is equiped", Sync(() -> {
                 var expected = [
-                    "dmgFlatBonus" => baseAttributes.copy(),
-                    "dmgMultBonus" => baseAttributes.copy(),
-                    "dmgMultBaseBonus" => baseAttributes.copy(),
-                    "dmgFromRangeBonus" => baseAttributes.copy(),
-                    "rangeAndDamageBonus" => baseAttributes.copy(),
+                    "dmgFlatBonus" => baseAttributes.copy().set(DAMAGE, 15),
+                    "dmgMultBonus" => baseAttributes.copy().set(DAMAGE, 12),
+                    "dmgMultBaseBonus" => baseAttributes.copy().set(DAMAGE, 11),
+                    "dmgFromRangeBonus" => baseAttributes.copy().set(DAMAGE, 15),
+                    "rangeAndDamageBonus" => baseAttributes.copy().set(DAMAGE, 14).set(RANGE, 104),
                 ];
-                expected.get("dmgFlatBonus").set(DAMAGE, 15);
-                expected.get("dmgMultBonus").set(DAMAGE, 11);
-                expected.get("dmgMultBaseBonus").set(DAMAGE, 12);
-                expected.get("dmgFromRangeBonus").set(DAMAGE, 15);
-                expected.get("rangeAndDamageBonus").set(DAMAGE, 14);
-                expected.get("rangeAndDamageBonus").set(RANGE, 104);
 
                 for (bonusKey => bonus in bonuses) {
-                    var calculatedAttributeSet = StuffMe.resolve(baseAttributes, [new Item(bonusKey, [bonus])]);
-                    calculatedAttributeSet.get(RANGE).should.be(expected.get(bonusKey).get(RANGE));
-                    calculatedAttributeSet.get(DAMAGE).should.be(expected.get(bonusKey).get(DAMAGE));
+                    var equipedItems = [new Item(bonusKey, [bonus])];
+                    var calculatedAttributes = baseAttributes.calculateAttributeValues(baseAttributes.with(equipedItems));
+                    calculatedAttributes.get(RANGE).should.be(expected.get(bonusKey).get(RANGE));
+                    calculatedAttributes.get(DAMAGE).should.be(expected.get(bonusKey).get(DAMAGE));
                 }
             }));
         }));
@@ -94,12 +96,6 @@ class RunTests extends buddy.SingleSuite {
                 keys.should.containAll(["Range", "Damage"]);
                 values.should.contain(10);
                 values.should.contain(100);
-            }));
-
-            itShould("should be able to hold Items", Sync(() -> {
-                var testItem:Item = new Item("test", [new Bonus("Add 5 Damage", attr -> [DAMAGE => 5], Priority.Normal)]);
-                baseAttributes.equip(testItem);
-                baseAttributes.equipedItems.should.contain(testItem);
             }));
 
             afterEach({});

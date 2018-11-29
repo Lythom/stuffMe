@@ -1,5 +1,6 @@
 package lythom.stuffme;
 
+import haxe.ds.StringMap;
 import lythom.stuffme.BonusValues;
 
 using lythom.stuffme.StuffMe;
@@ -18,7 +19,7 @@ using lythom.stuffme.StuffMe;
  *
  */
 @:keep
-class Item {
+class Item extends AttributeSet {
     /**
      * Must be unique among the item tree
      */
@@ -33,8 +34,11 @@ class Item {
      * Sub-Items this Item have. Sub-Items will provide bonuses based on this item.
      */
     public var equipedItems:Array<Item>;
-    public var BonusValues:BonusValues;
 
+    /**
+     * calculated bonuses. Automatically updated.
+     */
+    // private var bonusValues:BonusValues;
     // TODO: custom properties
 
     /**
@@ -43,20 +47,24 @@ class Item {
      * @param bonuses 		Array of the bonuses this Item grant to an AttributeSet
      * @param equipedItems 	Sub-Items this Item have. Sub-Items will provide bonuses based on this item.
      */
-    public function new(id:String, bonuses:ItemDefinition, ?equipedItems:Array<Item>) {
+    public function new(id:String, bonuses:Array<Bonus>, ?equipedItems:Array<Item>) {
+        super();
         this.id = id;
         this.bonuses = bonuses;
-
-        if (equipedItems != null) {
-            this.equipedItems = equipedItems;
-        }
+        this.equipedItems = (equipedItems != null) ? equipedItems : [];
     }
 
-    public function updateItemBonuses(attributeSet:AttributeSet, priority:Priority) {
-        var currentPriorityBonuses = this.bonuses.filter(b -> b.priority == priority);
-        for (bonus in currentPriorityBonuses) {
-            var bonusValues = bonus.formula(attributeSet);
-            this.BonusValues.merge(bonusValues);
+    public function getItemBonuses(attributeValues:AttributeValues, priority:Priority):Array<BonusDetail> {
+        var bonusDetailList:Array<BonusDetail> = [];
+        var bonusesOfCurrentPriority = this.bonuses.filter(b -> b.priority == priority);
+        for (bonus in bonusesOfCurrentPriority) {
+            bonusDetailList.push({
+                value: bonus.formula(attributeValues),
+                item: this,
+                bonus: bonus,
+                description: null, // TODO: bonus.dynamicDescription()
+            });
         }
+        return bonusDetailList;
     }
 }
