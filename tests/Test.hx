@@ -1,10 +1,7 @@
 import lythom.stuffme.AttributeValues;
-import buddy.BuddySuite;
 import lythom.stuffme.Priority;
 import lythom.stuffme.Bonus;
-import lythom.stuffme.Attribute;
 import lythom.stuffme.Item;
-import haxe.ds.StringMap;
 
 using buddy.Should;
 using lythom.stuffme.StuffMe;
@@ -15,8 +12,8 @@ class Test extends buddy.SingleSuite {
         var itShould = it;
 
         var baseAttributes:AttributeValues;
-        var RANGE = new Attribute("Range");
-        var DAMAGE = new Attribute("Damage");
+        var RANGE = "Range";
+        var DAMAGE = "Damage";
 
         var blindEffetInArray = ['blind'];
 

@@ -1,7 +1,6 @@
 package lythom.stuffme;
 
 import haxe.ds.StringMap;
-import lythom.stuffme.BonusValues;
 
 using lythom.stuffme.StuffMe;
 
@@ -28,18 +27,12 @@ class Item {
     /**
      * Array of the bonuses this Item grant to an AttributeSet
      */
-    public final bonuses:ItemDefinition;
+    public final bonuses:Array<Bonus>;
 
     /**
      * Sub-Items this Item have. Sub-Items will provide bonuses based on this item.
      */
     public var equipedItems:Array<Item>;
-
-    /**
-     * calculated bonuses. Automatically updated.
-     */
-    // private var bonusValues:BonusValues;
-    // TODO: custom properties
 
     /**
      * Creates an Item. An Item can provide bonuses to an AttributeSet.
