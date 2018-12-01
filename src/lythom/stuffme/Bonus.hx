@@ -1,11 +1,44 @@
 package lythom.stuffme;
 
-import haxe.ds.StringMap;
+typedef FormulaArgs = {
+    /**
+     * Attributes the bonus should be based on.
+     */
+    var values:AttributeValues;
+
+    /**
+     * Item the bonus is applied on.
+     */
+    var item:Item;
+
+    /**
+     * The current bonus.
+     */
+    var bonus:Bonus;
+
+    /**
+     * Other items on the same level
+     */
+    var siblings:Array<Item>;
+
+    /**
+     * Parent item. null if root item.
+     */
+    var parent:Item;
+};
 
 /**
- * Calculate an AttributeValues (bonus granted) from base attributeValues (The entity reference stats with)
+ * Calculate an AttributeValues (bonus granted) from :
+ * - base attributeValues (The entity reference stats with)
+ * - current item
+ * - root items equipped
  */
-typedef Formula = AttributeValues->AttributeValues;
+typedef Formula = FormulaArgs->AttributeValues;
+
+/**
+ * Renders a description from baseAttributes
+ */
+typedef DynamicDescription = FormulaArgs->String;
 
 /**
  * A Bonus can calculate a bonus values to one or several attributes based on a reference AttributeSet.
@@ -21,16 +54,19 @@ class Bonus {
      */
     public var formula:Formula;
     public var priority:Priority;
+    public var desc:DynamicDescription;
 
     /**
      * A Bonus can calculate a bonus values to one or several attributes based on a reference AttributeSet.
      * @param id 		Used to document the bonus behaviour. Ie: Use as translation key
-     * @param formula 	Returns a collection of attribute->value where value is the additional bonus granted to the attribute
+     * @param formula 	Returns an AttributeValues where values are the additional bonus granted to the attribute
+     * @param desc      Returns a string calculated from attributes.
      * @param priority 	Normal (0) priority are applied first, After(1) and Finally(2) priorities will include calculated bonuses from previous priorities in their own calculation.
      */
-    public function new(id:String, formula:Formula, priority:Priority = Priority.Normal) {
+    public function new(id:String, formula:Formula, ?desc:DynamicDescription, priority:Priority = Priority.Normal) {
         this.id = id;
         this.formula = formula;
+        this.desc = desc;
         this.priority = priority;
     }
 }

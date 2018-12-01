@@ -6,5 +6,5 @@ import lythom.stuffme.BonusDetail;
 typedef ItemDetail = {
     var item:Item;
     var items:Array<ItemDetail>;
-    var bonusDetailList:Array<BonusDetail>;
+    var bonuses:Array<BonusDetail>;
 }

@@ -1,8 +1,6 @@
 package lythom.stuffme;
 
-import haxe.ds.StringMap;
-
-using lythom.stuffme.StuffMe;
+using Lambda;
 
 /**
  *  ## Item
@@ -34,6 +32,8 @@ class Item {
      */
     public var equipedItems:Array<Item>;
 
+    private var parent:Item;
+
     /**
      * Creates an Item. An Item can provide bonuses to an AttributeSet.
      * @param id 			Must be unique among the tree
@@ -46,17 +46,74 @@ class Item {
         this.equipedItems = (equipedItems != null) ? equipedItems : [];
     }
 
-    public function getItemBonuses(attributeValues:AttributeValues, priority:Priority):Array<BonusDetail> {
-        var bonusDetailList:Array<BonusDetail> = [];
+    public function getItemBonuses(
+        attributeValues:AttributeValues,
+        priority:Priority,
+        parentItem:Item,
+        siblings:Array<Item>
+    ):Array<BonusDetail> {
+        var bonusDetails:Array<BonusDetail> = [];
         var bonusesOfCurrentPriority = this.bonuses.filter(b -> b.priority == priority);
         for (bonus in bonusesOfCurrentPriority) {
-            bonusDetailList.push({
-                value: bonus.formula(attributeValues),
+            var formulaArgs = {
+                values: attributeValues,
+                item: this,
+                parent: parentItem,
+                siblings: siblings,
+                bonus: bonus
+            }
+            bonusDetails.push({
+                value: bonus.formula(formulaArgs),
                 item: this,
                 bonus: bonus,
-                description: null, // TODO: bonus.dynamicDescription()
+                description: (bonus.desc != null ? bonus.desc(formulaArgs) : '')
             });
         }
-        return bonusDetailList;
+        return bonusDetails;
+    }
+
+    /**
+     * Find a parent item by looking for the current item in an Item tree.
+     * Item must be unique in the tree for this function to work.
+     * @param items root items from where to search the current item.
+     * @return Item parent of the current item in the tree.
+     */
+    // public function getParent(items:Array<Item>):Item {
+    //     // search in items if one is the parent of the passedItem
+    //     var parent = items.find(item -> item.equipedItems.exists(i -> i == this));
+    //     if (parent != null) {
+    //         return parent;
+    //     }
+    //     // if the parent is not among items, look into subitems recursively
+    //     for (item in items) {
+    //         var p = this.getParent(item.equipedItems);
+    //         if (p != null) {
+    //             return p;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    /**
+     * Find all sibling items, including current item, in an Item tree.
+     * Item must be unique in the tree for this function to work.
+     * @param items root items from where to search the current item.
+     * @return Array<Item> items that are on the same tree level of the current item.
+     */
+    // public function getSiblings(items:Array<Item>):Array<Item> {
+    //     if (items.exists(i -> i == this)) {
+    //         return items;
+    //     }
+    //     for (item in items) {
+    //         var s = getSiblings(item.equipedItems);
+    //         if (s != null) {
+    //             return s;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    public function toString() {
+        return "Item(" + this.id + ")";
     }
 }

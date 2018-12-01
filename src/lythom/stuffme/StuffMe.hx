@@ -1,10 +1,8 @@
 package lythom.stuffme;
 
-import haxe.ds.StringMap;
-
 using Lambda;
 
-typedef CalculatedStuff = {details:Array<ItemDetail>, values:AttributeValues};
+typedef CalculatedStuff = {items:Array<ItemDetail>, values:AttributeValues};
 
 @:keep
 class StuffMe {
@@ -12,37 +10,41 @@ class StuffMe {
         if (items.length == 0) {
             return {
                 values: attributes,
-                details: []
+                items: []
             };
         }
-        var details = StuffMe.calculateItemDetails(attributes, items);
-        var values = StuffMe.calculateAttributeValues(attributes, details);
+        var itemDetails = StuffMe.calculateItemDetails(attributes, items, null);
+        var values = StuffMe.merge(StuffMe.calculateBonusValues(attributes, itemDetails), attributes);
         return {
-            details: details,
+            items: itemDetails,
             values: values
         };
     }
 
-    public static function calculateAttributeValues(attributes:AttributeValues, itemDetails:Array<ItemDetail>):AttributeValues {
-        var thisBonusValues = StuffMe.mergeAll(itemDetails.flatMap(d -> d.bonusDetailList.map(b -> b.value)));
+    public static function calculateBonusValues(
+        attributes:AttributeValues,
+        itemDetails:Array<ItemDetail>
+    ):AttributeValues {
+        var thisBonusValues = StuffMe.mergeAll(itemDetails.flatMap(d -> d.bonuses.map(b -> b.value)));
         var childItemDetail = itemDetails.flatMap(d -> d.items);
         if (childItemDetail.length == 0) {
-            return StuffMe.merge(thisBonusValues, attributes);
+            return thisBonusValues;
         }
-        return StuffMe.mergeAll([
-            StuffMe.calculateAttributeValues(attributes, childItemDetail),
-            thisBonusValues,
-            attributes
-        ]);
+        return StuffMe.merge(thisBonusValues, StuffMe.calculateBonusValues(attributes, childItemDetail));
     }
 
     /**
      * Calculate the bonus items would grant on this attributes.
      * @param attributes
      * @param items
+     * @param parentItem
      * @return Array<ItemDetail>
      */
-    public static function calculateItemDetails(attributes:AttributeValues, items:Array<Item>):Array<ItemDetail> {
+    public static function calculateItemDetails(
+        attributes:AttributeValues,
+        items:Array<Item>,
+        parentItem:Item
+    ):Array<ItemDetail> {
         if (items.length == 0) {
             return [];
         }
@@ -53,25 +55,28 @@ class StuffMe {
         // For each item, calculate the BonusDetail by priority
         for (priority in StuffMe.getPrioritiesSorted(items)) {
             // take into account bonus calculated from previous priorities
-            var cumulatedValue = StuffMe.merge(
-                StuffMe.mergeAll(cumulatedBonusDetails.map(b -> b.value)),
-                attributes
+            var cumulatedValue = StuffMe.merge(StuffMe.mergeAll(
+                    cumulatedBonusDetails.map(b -> b.value)
+                ), attributes);
+            // calculate for each item the list of BonusDetail of current priority
+            // from AttributeSet data and cumulatedBonusValues
+            var itemsBonusDetailsOfPriority:Array<BonusDetail> = items.flatMap(
+                item -> item.getItemBonuses(cumulatedValue, priority, parentItem, items)
             );
-            // calculate for each item the list of BonusDetail of current priority from AttributeSet data and cumulatedBonusValues
-            var itemsBonusDetailsOfPriority:Array<BonusDetail> = items.flatMap(item -> item.getItemBonuses(cumulatedValue, priority));
 
             // apply on current attributes the cumulated bonus value in order to include them in next bonuses calculations
             cumulatedBonusDetails = cumulatedBonusDetails.concat(itemsBonusDetailsOfPriority);
         }
 
-        // Now that each item bonus value is calculated, subItems, that are based on the item granted bonus, can be calculated as well.
+        // Now that each item bonus value is calculated,
+        // subItems, that are based on the item granted bonus, can be calculated as well.
         for (item in items) {
-            var itemBonusDetailList = cumulatedBonusDetails.filter(b -> b.item == item);
-            var itemAttributeValues = StuffMe.mergeAll(itemBonusDetailList.map(b -> b.value));
+            var itemBonusDetails = cumulatedBonusDetails.filter(b -> b.item == item);
+            var itemAttributeValues = StuffMe.mergeAll(itemBonusDetails.map(b -> b.value));
             itemsDetails.push({
                 item: item,
-                items: calculateItemDetails(itemAttributeValues, item.equipedItems),
-                bonusDetailList: itemBonusDetailList
+                items: calculateItemDetails(itemAttributeValues, item.equipedItems, item),
+                bonuses: itemBonusDetails
             });
         }
         return itemsDetails;
@@ -79,29 +84,32 @@ class StuffMe {
 
     /**
      * Merge all AttributeValues values in the current AttributeValues by additioning the Float values by key.
-     * @param attributeSet
+     * @param attributes
      * @param bonusValues
      * @return AttributeValues
      */
-    static public function merge(attributeSet:AttributeValues, bonusValues:AttributeValues):AttributeValues {
+    static public function merge(attributes:AttributeValues, bonusValues:AttributeValues):AttributeValues {
         for (key => value in bonusValues) {
-            var currentVal = attributeSet.get(key);
-            attributeSet.set(key, currentVal == null ? value : currentVal + value);
+            var currentVal = attributes.get(key);
+            attributes.set(key, currentVal == null ? value : currentVal + value);
         }
-        return attributeSet;
+        return attributes;
     }
 
     /**
-     * Merge an Array of AttributeValues in the current attributeSet by additioning the Float values by key.
-     * @param attributeSet
+     * Merge an Array of AttributeValues in the current attributes by additioning the Float values by key.
+     * @param attributes
      * @param bonusValuesList
      * @return AttributeValues
      */
-    static public function mergeArray(attributeSet:AttributeValues, bonusValuesList:Array<AttributeValues>):AttributeValues {
+    static public function mergeArray(
+        attributes:AttributeValues,
+        bonusValuesList:Array<AttributeValues>
+    ):AttributeValues {
         for (value in bonusValuesList) {
-            StuffMe.merge(attributeSet, value);
+            StuffMe.merge(attributes, value);
         }
-        return attributeSet;
+        return attributes;
     }
 
     /**
@@ -115,14 +123,14 @@ class StuffMe {
 
     /**
      * Remove all values from an AttributeValues
-     * @param attributeSet
+     * @param attributes
      * @return AttributeValues
      */
-    static public function clear(attributeSet:AttributeValues):AttributeValues {
-        for (key in attributeSet.keys()) {
-            attributeSet.remove(key);
+    static public function clear(attributes:AttributeValues):AttributeValues {
+        for (key in attributes.keys()) {
+            attributes.remove(key);
         }
-        return attributeSet;
+        return attributes;
     }
 
     /**

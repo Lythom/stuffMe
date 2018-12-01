@@ -3,4 +3,4 @@
 -lib buddy
 -x Test
 #-hl RunTests.hl
-#-main RunTests
+#-main Test
