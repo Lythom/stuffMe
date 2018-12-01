@@ -19,7 +19,7 @@ using lythom.stuffme.StuffMe;
  *
  */
 @:keep
-class Item extends AttributeSet {
+class Item {
     /**
      * Must be unique among the item tree
      */
@@ -48,7 +48,6 @@ class Item extends AttributeSet {
      * @param equipedItems 	Sub-Items this Item have. Sub-Items will provide bonuses based on this item.
      */
     public function new(id:String, bonuses:Array<Bonus>, ?equipedItems:Array<Item>) {
-        super();
         this.id = id;
         this.bonuses = bonuses;
         this.equipedItems = (equipedItems != null) ? equipedItems : [];
