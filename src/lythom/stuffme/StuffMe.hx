@@ -1,5 +1,7 @@
 package lythom.stuffme;
 
+import lythom.stuffme.Bonus;
+
 using Lambda;
 
 typedef CalculatedStuff = {items:Array<ItemDetail>, values:AttributeValues};
@@ -23,8 +25,7 @@ class StuffMe {
 
     public static function calculateBonusValues(
         attributes:AttributeValues,
-        itemDetails:Array<ItemDetail>
-    ):AttributeValues {
+        itemDetails:Array<ItemDetail>):AttributeValues {
         var thisBonusValues = StuffMe.mergeAll(itemDetails.flatMap(d -> d.bonuses.map(b -> b.value)));
         var childItemDetail = itemDetails.flatMap(d -> d.items);
         if (childItemDetail.length == 0) {
@@ -43,8 +44,7 @@ class StuffMe {
     public static function calculateItemDetails(
         attributes:AttributeValues,
         items:Array<Item>,
-        parentItem:Item
-    ):Array<ItemDetail> {
+        parentItem:Item):Array<ItemDetail> {
         if (items.length == 0) {
             return [];
         }
@@ -104,8 +104,7 @@ class StuffMe {
      */
     static public function mergeArray(
         attributes:AttributeValues,
-        bonusValuesList:Array<AttributeValues>
-    ):AttributeValues {
+        bonusValuesList:Array<AttributeValues>):AttributeValues {
         for (value in bonusValuesList) {
             StuffMe.merge(attributes, value);
         }

@@ -1,5 +1,7 @@
 package lythom.stuffme;
 
+import lythom.stuffme.Bonus;
+
 using Lambda;
 
 /**
@@ -50,8 +52,7 @@ class Item {
         attributeValues:AttributeValues,
         priority:Priority,
         parentItem:Item,
-        siblings:Array<Item>
-    ):Array<BonusDetail> {
+        siblings:Array<Item>):Array<BonusDetail> {
         var bonusDetails:Array<BonusDetail> = [];
         var bonusesOfCurrentPriority = this.bonuses.filter(b -> b.priority == priority);
         for (bonus in bonusesOfCurrentPriority) {
@@ -112,7 +113,6 @@ class Item {
     //     }
     //     return null;
     // }
-
     public function toString() {
         return "Item(" + this.id + ")";
     }

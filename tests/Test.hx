@@ -1,5 +1,4 @@
 import lythom.stuffme.AttributeValues;
-import lythom.stuffme.Priority;
 import lythom.stuffme.Bonus;
 import lythom.stuffme.Item;
 
