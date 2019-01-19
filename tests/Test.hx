@@ -22,27 +22,22 @@ class Test extends buddy.SingleSuite {
         desc("StuffMe calculation", Sync(() -> {
             var bonuses = [
                 "dmgFlatBonus" => new Bonus(
-                    'Add 5 damage',
                     args -> [DAMAGE => 5],
                     Priority.Normal
                 ),
                 "dmgMultBonus" => new Bonus(
-                    'Add 20% damage + bonus',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 0.2],
                     Priority.After
                 ),
                 "dmgMultBaseBonus" => new Bonus(
-                    'Add 10% base damage',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 0.1],
                     Priority.Normal
                 ),
                 "dmgFromRangeBonus" => new Bonus(
-                    'Add 5% range as damage',
                     args -> [DAMAGE => args.values.get(RANGE) * 0.05],
                     Priority.After
                 ),
                 "rangeAndDamageBonus" => new Bonus(
-                    'Add 4 range and 4 damage',
                     args -> [DAMAGE => 4, RANGE => 4],
                     Priority.Normal
                 ),
@@ -84,12 +79,10 @@ class Test extends buddy.SingleSuite {
 
             itShould("calculate bonus of same priorities from baseAttributes", Sync(() -> {
                 var normalPriorityBonus = new Bonus(
-                    'Add 100% damage',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 1.0],
                     Priority.Normal
                 );
                 var normalPriorityBonus2 = new Bonus(
-                    'Add 10% damage',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 0.1],
                     Priority.Normal
                 );
@@ -102,12 +95,10 @@ class Test extends buddy.SingleSuite {
 
             itShould("take first priorities into account when calculating later priorities", Sync(() -> {
                 var normalPriorityBonus = new Bonus(
-                    'Add 100% damage',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 1.0],
                     Priority.Normal
                 );
                 var afterPriorityBonus = new Bonus(
-                    'Add 10% damage',
                     args -> [DAMAGE => args.values.get(DAMAGE) * 0.1],
                     Priority.After
                 );
@@ -129,7 +120,6 @@ class Test extends buddy.SingleSuite {
 
             itShould("calculate root items then subitems", Sync(() -> {
                 var bonus10pRange = new Bonus(
-                    'Add 10% range',
                     args -> [RANGE => args.values.get(RANGE) * 0.1],
                     Priority.Normal
                 );
@@ -153,7 +143,6 @@ class Test extends buddy.SingleSuite {
             itShould("calculate conditional bonuses: a specific sibling item is equiped", Sync(() -> {
                 // use closure to give context to the bonus
                 var swordSynergy = new Bonus(
-                    '[with sword] Add 5 damage',
                     args -> {
                         if (args.siblings.exists(i -> Std.is(i, SwordItem))) {
                             return [DAMAGE => 5];
@@ -183,7 +172,6 @@ class Test extends buddy.SingleSuite {
             itShould("calculate conditional bonuses: bonus depends on the parent", Sync(() -> {
                 // use closure to give context to the bonus
                 var ambivalentGemBonus = new Bonus(
-                    '[on sword] Add 5 $DAMAGE / [on shield] Add 2 $RANGE',
                     args -> {
                         if (args.parent != null && args.parent.id == "Sword") {
                             return [DAMAGE => 5];

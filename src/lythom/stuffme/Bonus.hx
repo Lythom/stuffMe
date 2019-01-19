@@ -1,5 +1,12 @@
 package lythom.stuffme;
 
+@:enum
+abstract Priority(Int) from Int to Int {
+    var Normal = 0;
+    var After = 1;
+    var Finally = 2;
+}
+
 typedef FormulaArgs = {
     /**
      * Attributes the bonus should be based on.
@@ -47,24 +54,28 @@ typedef DynamicDescription = FormulaArgs->String;
  */
 @:keep
 class Bonus {
-    public var id:String;
-
     /**
      * Calculate an AttributeValues (bonus granted) from base attributeValues (The entity reference stats with)
      */
     public var formula:Formula;
+    /**
+     * Normal (0) priority are applied first, After(1) and Finally(2)
+     * priorities will include calculated bonuses from previous priorities in their own calculation.
+     */
     public var priority:Priority;
+    /**
+     *  Returns a string calculated from attributes.
+     */
     public var desc:DynamicDescription;
 
     /**
      * A Bonus can calculate a bonus values to one or several attributes based on a reference AttributeSet.
-     * @param id 		Used to document the bonus behaviour. Ie: Use as translation key
      * @param formula 	Returns an AttributeValues where values are the additional bonus granted to the attribute
      * @param desc      Returns a string calculated from attributes.
-     * @param priority 	Normal (0) priority are applied first, After(1) and Finally(2) priorities will include calculated bonuses from previous priorities in their own calculation.
+     * @param priority 	Normal (0) priority are applied first, After(1) and Finally(2)
+     * priorities will include calculated bonuses from previous priorities in their own calculation.
      */
-    public function new(id:String, formula:Formula, ?desc:DynamicDescription, priority:Priority = Priority.Normal) {
-        this.id = id;
+    public function new(formula:Formula, ?desc:DynamicDescription, priority:Priority = Priority.Normal) {
         this.formula = formula;
         this.desc = desc;
         this.priority = priority;

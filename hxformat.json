@@ -3,7 +3,7 @@
         "character": "    "
     },
     "wrapping": {
-        "maxLineLength": 120,
+        "maxLineLength": 140,
         "anonType": {
             "defaultWrap": "keep",
             "rules": [
@@ -13,7 +13,7 @@
                     "conditions": [
                         {
                             "cond": "lineLength >= n",
-                            "value": 120
+                            "value": 140
                         }
                     ]
                 }
@@ -28,7 +28,7 @@
                     "conditions": [
                         {
                             "cond": "lineLength >= n",
-                            "value": 120
+                            "value": 140
                         }
                     ]
                 }
